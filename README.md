@@ -1,4 +1,4 @@
-<img width="1919" height="871" alt="image" src="https://github.com/user-attachments/assets/a92ced2a-340a-4539-8efc-b1e2bd3d1c06" /># PneumoScan AI
+# PneumoScan AI
 
 Final year project (PFA) — I wanted to build something actually useful, so I made an AI that helps detect pneumonia from chest X-rays and reads medical reports.
 
