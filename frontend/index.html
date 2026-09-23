@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PneumoScan AI Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css?v=6" />
+  </head>
+  <body>
+    <div class="background-blobs">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+    </div>
+
+    <div class="app-container">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <div class="logo-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+          </div>
+          <h1>PneumoScan AI</h1>
+        </div>
+
+        <div class="user-section">
+          <a id="register-btn" href="/register" class="profile-btn register-btn" title="New patient registration">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+            <span>Register</span>
+          </a>
+          <button id="profile-btn" class="profile-btn" title="User Profile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <span id="profile-name">Connect</span>
+          </button>
+        </div>
+
+        <div class="glass-panel" style="flex:1; display:flex; flex-direction:column; padding:24px; justify-content: center; align-items: center; text-align: center; gap: 12px;">
+          <h2 style="font-size:1.1rem; margin-bottom:4px; width:100%;">Session History</h2>
+          <p style="color:var(--text-muted); font-size:0.85rem; margin:0 0 8px 0; line-height:1.4;">
+            Access and manage all your past diagnostic results and X-ray analyses.
+          </p>
+          <a href="/history-page" class="btn-primary" style="text-decoration:none; text-align:center; display:flex; justify-content:center; align-items:center; width:100%; font-size:0.9rem; padding:12px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px; height:16px; margin-right:8px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            Open History Center
+          </a>
+        </div>
+      </aside>
+
+      <!-- Main Content Area -->
+      <main class="main-content">
+        <header class="main-header">
+          <div>
+            <h1 style="font-size:2rem;">Dashboard</h1>
+            <p style="color:var(--text-muted);">Welcome back to Chest X-Ray Analysis Platform</p>
+          </div>
+        </header>
+
+        <div class="dashboard">
+          <!-- Unified Clinical Diagnostic Workflow -->
+          <div class="glass-panel full-width diagnostic-workflow">
+            <h2>Clinical Diagnostic Workflow</h2>
+            <p style="color:var(--text-muted); margin-top:-8px;">Upload medical documents, analyze your X-ray, and receive a combined AI diagnostic.</p>
+
+            <div id="diag-auth-notice" class="rag-notice hidden">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              Please <strong style="cursor:pointer; text-decoration:underline;" id="diag-login-link">log in</strong> to use the diagnostic workflow.
+            </div>
+
+            <div id="diag-workflow" class="hidden">
+              <!-- Step 1: Medical Documents -->
+              <div class="diag-step">
+                <h3><span class="step-num">1</span> Upload Medical Documents</h3>
+                <label for="docs-input" class="rag-upload-label" id="docs-upload-label">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:36px;height:36px;color:var(--primary);"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  <span id="docs-file-name">Click to upload PDF medical reports (multiple allowed)</span>
+                  <input type="file" id="docs-input" accept=".pdf,application/pdf" multiple class="hidden-input" />
+                </label>
+                <button id="process-docs-btn" class="btn-primary" disabled style="margin-top:12px;">
+                  Preview Report Analysis (optional)
+                </button>
+                <p style="color:var(--text-muted); font-size:0.85rem; margin-top:8px;">Reports are automatically processed with RAG when you click "Generate Final Diagnostic".</p>
+                <div id="docs-status" class="status hidden" style="margin-top:12px;"></div>
+              </div>
+
+              <!-- Step 2: X-Ray Upload -->
+              <div class="diag-step">
+                <h3><span class="step-num">2</span> Upload Chest X-Ray</h3>
+                <form id="predict-form" class="upload-form">
+                  <label for="xray-input" class="upload-area" id="upload-area">
+                    <div class="preview-container hidden" id="preview-container">
+                      <img id="image-preview" class="image-preview" alt="X-ray preview" />
+                      <img id="heatmap-preview" class="heatmap-preview hidden" alt="Grad-CAM overlay" />
+                      <div class="expand-btn" id="expand-btn" title="View Fullscreen">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+                      </div>
+                    </div>
+                    <div id="upload-placeholder" class="upload-placeholder">
+                      <div class="upload-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                      </div>
+                      <p class="upload-text" id="file-name">Click or drag & drop an X-ray image</p>
+                    </div>
+                    <input id="xray-input" type="file" accept="image/*" class="hidden-input" />
+                  </label>
+                </form>
+              </div>
+
+              <!-- Step 3: Diagnostic Box -->
+              <div class="diag-step">
+                <h3><span class="step-num">3</span> Diagnostic Box</h3>
+                <div class="diagnostic-box" id="diagnostic-box">
+                  <div class="diagnostic-box-image">
+                    <p class="diag-box-placeholder" id="diag-box-img-placeholder">X-ray preview will appear here</p>
+                    <img id="diag-box-xray" class="hidden" alt="Diagnostic X-ray" />
+                    <img id="diag-box-heatmap" class="diag-box-heatmap hidden" alt="Grad-CAM heatmap" />
+                  </div>
+                  <div class="diagnostic-box-json">
+                    <h4>RAG Processed Data (JSON)</h4>
+                    <pre id="rag-json-display" class="json-display">Upload and process medical documents to see JSON data here.</pre>
+                  </div>
+                </div>
+                <button id="final-diag-btn" class="btn-primary" disabled style="margin-top:16px;">
+                  Generate Final Diagnostic
+                </button>
+                <div id="final-diag-status" class="status hidden" style="margin-top:12px;"></div>
+              </div>
+
+              <!-- Step 4: Final Result -->
+              <div id="final-result" class="final-diagnostic-result hidden">
+                <h3 id="final-result-title"><span class="step-num">4</span> Final Diagnostic</h3>
+                <div id="identity-banner" class="identity-banner hidden"></div>
+                <p id="final-report-note" class="final-report-note hidden"></p>
+                <div id="final-diagnostic-body">
+                  <div class="final-diag-header">
+                    <span>Diagnosis:</span>
+                    <span id="final-diagnosis" class="badge"></span>
+                  </div>
+                  <p id="final-severity" class="final-meta"></p>
+                  <p id="final-summary" class="rag-summary"></p>
+                  <div id="final-contributions" class="contributions-grid"></div>
+                  <div class="rag-findings">
+                    <strong>Key Factors:</strong>
+                    <ul id="final-factors"></ul>
+                  </div>
+                  <div class="rag-findings">
+                    <strong>Recommendations:</strong>
+                    <ul id="final-recommendations"></ul>
+                  </div>
+                  <div class="rag-recommendation">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0;color:var(--primary);"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <span id="final-followup"></span>
+                  </div>
+                  <p id="final-disclaimer" class="diag-disclaimer"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Model Performance -->
+          <div class="glass-panel full-width">
+            <h2>AI Model Performance</h2>
+            <div style="display:flex; gap:32px; align-items:flex-start;">
+              <div style="width:300px; flex-shrink:0;">
+                <div class="metrics-grid">
+                  <div class="metric-card">
+                    <h3>Accuracy</h3>
+                    <p id="metric-accuracy" class="metric-val">--%</p>
+                  </div>
+                  <div class="metric-card">
+                    <h3>AUC Score</h3>
+                    <p id="metric-auc" class="metric-val">--%</p>
+                  </div>
+                </div>
+
+                <div class="steps mt-4">
+                  <div class="step">
+                    <div class="step-icon">1</div>
+                    <div class="step-text"><strong>ETL Pipeline:</strong> Images are resized, normalized and preprocessed via OpenCV.</div>
+                  </div>
+                  <div class="step">
+                    <div class="step-icon">2</div>
+                    <div class="step-text"><strong>CNN Model:</strong> Features are extracted using our deep Convolutional Neural Network.</div>
+                  </div>
+                  <div class="step">
+                    <div class="step-icon">3</div>
+                    <div class="step-text"><strong>API Prediction:</strong> FastAPI returns the exact pneumonia risk instantly.</div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="flex:1;">
+                <div class="tabs mt-0">
+                  <button class="tab active" data-target="tab-confusion">Confusion Matrix</button>
+                  <button class="tab" data-target="tab-roc">ROC Curve</button>
+                  <button class="tab" data-target="tab-history">Training History</button>
+                </div>
+                <div class="tab-content active" id="tab-confusion">
+                  <img src="/artifacts/confusion_matrix.png" alt="Confusion Matrix" class="responsive-img" onerror="this.style.display='none'">
+                </div>
+                <div class="tab-content" id="tab-roc">
+                  <img src="/artifacts/roc_curve.png" alt="ROC Curve" class="responsive-img" onerror="this.style.display='none'">
+                </div>
+                <div class="tab-content" id="tab-history">
+                  <img src="/artifacts/training_history.png" alt="Training History" class="responsive-img" onerror="this.style.display='none'">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Fullscreen Modal -->
+    <div id="image-modal" class="modal hidden">
+      <span class="modal-close" id="modal-close">&times;</span>
+      <div class="modal-content">
+        <img id="modal-image" class="modal-img" />
+        <img id="modal-heatmap" class="modal-heatmap hidden" />
+      </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="modal hidden">
+      <div class="modal-content auth-modal-content glass-panel register-modal">
+        <span class="modal-close modal-close-relative" id="auth-modal-close">&times;</span>
+
+        <!-- Login view -->
+        <div id="auth-view-login">
+          <h2 style="margin:0 0 4px 0;">Log In</h2>
+          <p style="color:var(--text-muted); margin:0 0 20px 0; font-size:0.9rem;">Access your account</p>
+          <div id="auth-error" class="text-danger hidden" style="color:#ef4444; margin-bottom:10px; font-size:0.9rem;"></div>
+          <form id="login-form" class="profile-form">
+            <div class="form-group">
+              <label for="login-email">Email</label>
+              <input type="email" id="login-email" required />
+            </div>
+            <div class="form-group">
+              <label for="login-password">Password</label>
+              <input type="password" id="login-password" required />
+            </div>
+            <button type="submit" class="btn-primary mt-4">Log In</button>
+          </form>
+          <div class="auth-divider"><span>or</span></div>
+          <a href="/register" class="btn-primary btn-register-link">Register — Medical Form</a>
+        </div>
+
+        <!-- Registration moved to /register page -->
+        <div id="auth-view-register" class="hidden"></div>
+      </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profile-modal" class="modal hidden">
+      <div class="modal-content profile-modal-content glass-panel" style="max-height:90vh; overflow-y:auto;">
+        <span class="modal-close modal-close-relative" id="profile-modal-close">&times;</span>
+        <h2>Medical Profile</h2>
+        <div id="profile-incomplete-notice" class="rag-notice hidden" style="margin-bottom:16px;">
+          Please complete your medical information below — it is required for diagnostics.
+        </div>
+        <div id="profile-success" class="text-success hidden" style="color:#10b981; margin-bottom:10px; font-size:0.9rem;">Profile updated successfully!</div>
+        <form id="profile-form" class="profile-form">
+          <div class="form-group">
+            <label for="first-name">First Name</label>
+            <input type="text" id="first-name" required />
+          </div>
+          <div class="form-group">
+            <label for="last-name">Last Name</label>
+            <input type="text" id="last-name" required />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="age">Age</label>
+              <input type="number" id="age" />
+            </div>
+            <div class="form-group">
+              <label for="blood-type">Blood Type</label>
+              <select id="blood-type">
+                <option value="">Select</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="medical-id">Medical ID <span style="font-size:0.78rem; color:#64748b; font-weight:400;">(auto-assigned)</span></label>
+            <input type="text" id="medical-id" readonly style="background:rgba(241,245,249,0.9); color:#64748b; cursor:default;" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="height">Height (cm)</label>
+              <input type="number" step="0.1" id="height" />
+            </div>
+            <div class="form-group">
+              <label for="weight">Weight (kg)</label>
+              <input type="number" step="0.1" id="weight" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="avg-heartbeat">Average Heartbeat (bpm)</label>
+            <input type="number" id="avg-heartbeat" min="30" max="220" />
+          </div>
+          <div class="form-group">
+            <label>Family history of illness?</label>
+            <div class="radio-row">
+              <label><input type="radio" name="family-illness" value="yes" /> Yes</label>
+              <label><input type="radio" name="family-illness" value="no" /> No</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="family-illness-history">Family Illness Details</label>
+            <textarea id="family-illness-history" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Do you smoke?</label>
+            <div class="radio-row">
+              <label><input type="radio" name="smokes" value="yes" /> Yes</label>
+              <label><input type="radio" name="smokes" value="no" /> No</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="medical-history">Medical History</label>
+            <textarea id="medical-history" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="current-illness">Current Illness / Diagnostic</label>
+            <textarea id="current-illness" rows="3"></textarea>
+          </div>
+          <button type="submit" class="btn-primary mt-4">Save Profile</button>
+          <button type="button" id="logout-btn" class="btn-primary mt-2" style="background:#ef4444;">Log Out</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Mandatory medical profile overlay for incomplete accounts -->
+    <div id="onboarding-overlay" class="onboarding-overlay hidden">
+      <div class="onboarding-panel glass-panel">
+        <h2>Complete Your Medical Profile</h2>
+        <p class="register-subtitle">Your account is missing required medical information. Please fill this form to continue.</p>
+        <div id="onboarding-error" class="register-error hidden"></div>
+        <form id="onboarding-form" class="profile-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="ob-age">Age</label>
+              <input type="number" id="ob-age" min="1" max="120" required />
+            </div>
+            <div class="form-group">
+              <label for="ob-blood-type">Blood Type</label>
+              <select id="ob-blood-type" required>
+                <option value="">Select blood type</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="ob-height">Height (cm)</label>
+              <input type="number" id="ob-height" step="0.1" min="1" required />
+            </div>
+            <div class="form-group">
+              <label for="ob-weight">Weight (kg)</label>
+              <input type="number" id="ob-weight" step="0.1" min="1" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="ob-heartbeat">Average Heartbeat (bpm)</label>
+            <input type="number" id="ob-heartbeat" min="30" max="220" required />
+          </div>
+          <div class="form-group">
+            <label>Family history of illness?</label>
+            <div class="radio-row">
+              <label><input type="radio" name="ob-family-illness" value="yes" /> Yes</label>
+              <label><input type="radio" name="ob-family-illness" value="no" checked /> No</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="ob-family-details">Family Illness Details</label>
+            <textarea id="ob-family-details" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Do you smoke?</label>
+            <div class="radio-row">
+              <label><input type="radio" name="ob-smokes" value="yes" /> Yes</label>
+              <label><input type="radio" name="ob-smokes" value="no" checked /> No</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="ob-medical-history">Medical History</label>
+            <textarea id="ob-medical-history" rows="3" required></textarea>
+          </div>
+          <div class="form-group">
+            <label for="ob-current-illness">Current Illness / Diagnostic</label>
+            <textarea id="ob-current-illness" rows="3" required></textarea>
+          </div>
+          <button type="submit" class="btn-primary mt-4">Save &amp; Continue</button>
+        </form>
+      </div>
+    </div>
+
+    <script src="/static/app.js?v=11"></script>
+  </body>
+</html>

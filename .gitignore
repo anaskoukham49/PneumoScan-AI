@@ -1,0 +1,77 @@
+# — Python —
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+*.whl
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+.venv/
+venv/
+env/
+ENV/
+
+# — Environment & Secrets —
+.env
+*.db
+*.sqlite
+*.sqlite3
+pneumoscan.db
+
+# — Models & Large artifacts ( >100MB — GitHub limit ) —
+model/artifacts/*.keras
+model/artifacts/*.h5
+model/artifacts/*.ckpt
+model/artifacts/*.pt
+model/artifacts/*.pth
+*.keras
+*.h5
+
+# — Logs & OS —
+*.log
+uvicorn.log
+nul
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+*~
+
+# — Data (private / large) —
+data/raw/**
+!data/raw/
+!data/raw/.gitkeep
+!data/raw/NORMAL/
+!data/raw/NORMAL/.gitkeep
+!data/raw/PNEUMONIA/
+!data/raw/PNEUMONIA/.gitkeep
+data/processed/**
+!data/processed/
+!data/processed/.gitkeep
+!data/processed/images/
+!data/processed/images/.gitkeep
+data/reports/**
+!data/reports/
+!data/reports/.gitkeep
+chroma_db/
+chroma.sqlite3
+
+# — IDE —
+.vscode/settings.json
+.idea/
+*.code-workspace
+
+# — Misc generated (keep one demo sample) —
+complex_medical_dossier.pdf
+abdo_adraoui_medical_report.html
+*_big_gallery.jpeg
+0*.jpeg

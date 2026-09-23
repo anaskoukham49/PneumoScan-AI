@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Patient Registration — PneumoScan AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css?v=5" />
+  </head>
+  <body>
+    <div class="background-blobs">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+    </div>
+
+    <div class="register-page">
+      <div class="register-card glass-panel">
+        <a href="/" class="back-link">&larr; Back to dashboard</a>
+        <h1>Patient Medical Registration</h1>
+        <p class="register-subtitle">Fill in all medical information below. This is required before you can use the app.</p>
+
+        <div id="register-error" class="register-error hidden"></div>
+
+        <form id="register-form" class="profile-form">
+          <h3 class="form-section-title">Account</h3>
+          <div class="form-group">
+            <label for="reg-email">Email</label>
+            <input type="email" id="reg-email" required />
+          </div>
+          <div class="form-group">
+            <label for="reg-password">Password</label>
+            <input type="password" id="reg-password" required minlength="6" />
+          </div>
+
+          <h3 class="form-section-title">Medical Form</h3>
+          <div class="form-group">
+            <label for="reg-fullname">Full Name</label>
+            <input type="text" id="reg-fullname" required placeholder="John Doe" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="reg-age">Age</label>
+              <input type="number" id="reg-age" min="1" max="120" required />
+            </div>
+            <div class="form-group">
+              <label for="reg-blood-type">Blood Type</label>
+              <select id="reg-blood-type" required>
+                <option value="">Select blood type</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="reg-height">Height (cm)</label>
+              <input type="number" id="reg-height" step="0.1" min="1" required />
+            </div>
+            <div class="form-group">
+              <label for="reg-weight">Weight (kg)</label>
+              <input type="number" id="reg-weight" step="0.1" min="1" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="reg-heartbeat">Average Heartbeat (bpm)</label>
+            <input type="number" id="reg-heartbeat" min="30" max="220" required />
+          </div>
+          <div class="form-group">
+            <label>Does anyone in your family have a history of illness?</label>
+            <div class="radio-row">
+              <label><input type="radio" name="reg-family-illness" value="yes" /> Yes</label>
+              <label><input type="radio" name="reg-family-illness" value="no" checked /> No</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="reg-family-details">Family Illness Details</label>
+            <textarea id="reg-family-details" rows="2" placeholder="Describe family medical history if applicable"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Do you smoke?</label>
+            <div class="radio-row">
+              <label><input type="radio" name="reg-smokes" value="yes" /> Yes</label>
+              <label><input type="radio" name="reg-smokes" value="no" checked /> No</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="reg-medical-history">Medical History</label>
+            <textarea id="reg-medical-history" rows="3" required placeholder="Past conditions, surgeries, allergies..."></textarea>
+          </div>
+          <div class="form-group">
+            <label for="reg-current-illness">Current Illness / Diagnostic</label>
+            <textarea id="reg-current-illness" rows="3" required placeholder="Describe your current symptoms or diagnosis"></textarea>
+          </div>
+          <button type="submit" class="btn-primary mt-4">Create Account</button>
+        </form>
+
+        <p class="auth-switch">Already have an account? <a href="/">Log in on the dashboard</a></p>
+      </div>
+    </div>
+
+    <script src="/static/register.js?v=5"></script>
+  </body>
+</html>

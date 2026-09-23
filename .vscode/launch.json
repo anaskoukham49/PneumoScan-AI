@@ -1,0 +1,24 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run API",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "api.app:app",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "8000"
+      ],
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}/.venv/Scripts/python.exe",
+      "console": "integratedTerminal",
+      "env": {
+        "TF_ENABLE_ONEDNN_OPTS": "0"
+      }
+    }
+  ]
+}

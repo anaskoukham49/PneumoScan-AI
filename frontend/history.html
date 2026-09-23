@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Diagnostic History | PneumoScan AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css?v=11" />
+    <style>
+      .history-layout {
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        gap: 28px;
+        min-height: calc(100vh - 120px);
+      }
+      .history-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+        padding-right: 8px;
+      }
+      .history-main {
+        display: flex;
+        flex-direction: column;
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+      }
+      .history-card-item {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        padding: 18px 20px;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+      }
+      .history-card-item:hover, .history-card-item.selected {
+        background: #ffffff;
+        border-color: var(--primary);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.1);
+      }
+      .history-card-item.selected {
+        border-width: 2px;
+      }
+      .history-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      .history-card-title {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: var(--text-dark);
+        word-break: break-all;
+        line-height: 1.4;
+      }
+      .history-card-meta {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+      }
+      .detail-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--text-muted);
+        text-align: center;
+        padding: 40px;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        min-height: 400px;
+      }
+      .detail-placeholder svg {
+        width: 64px;
+        height: 64px;
+        margin-bottom: 16px;
+        color: var(--primary);
+        opacity: 0.7;
+      }
+      .back-nav {
+        margin-bottom: 24px;
+      }
+      .back-nav-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        padding: 10px 20px;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        color: var(--text-dark);
+        transition: all 0.2s;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+      }
+      .back-nav-btn:hover {
+        background: #ffffff;
+        border-color: var(--primary);
+        transform: translateX(-4px);
+      }
+      /* Custom badge layouts */
+      .badge-row {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .badge.badge-sm {
+        font-size: 0.72rem;
+        padding: 2px 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="background-blobs">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+    </div>
+
+    <div class="app-container" style="display:block; padding: 40px 60px;">
+      <!-- Header Navigation -->
+      <div class="back-nav">
+        <a href="/" class="back-nav-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px; height:16px;"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          Back to Dashboard
+        </a>
+      </div>
+
+      <header class="main-header" style="margin-bottom: 32px;">
+        <div>
+          <h1 style="font-size: 2.2rem; font-weight: 800;">History Center</h1>
+          <p style="color:var(--text-muted); margin-top: 4px;">Review and manage your clinical diagnostic records and X-ray analyses</p>
+        </div>
+      </header>
+
+      <!-- History Layout Split -->
+      <div class="history-layout">
+        <!-- Sidebar: Sessions List -->
+        <div class="history-sidebar" id="history-sidebar-list">
+          <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; gap: 16px; height: 100%;">
+            <h2 style="font-size:1.1rem; margin:0;">Past Sessions</h2>
+            <div id="sessions-container" style="display: flex; flex-direction: column; gap: 12px; overflow-y: auto; max-height: calc(100vh - 240px);">
+              <div class="spinner" style="margin: 40px auto;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Details View -->
+        <div class="history-main" id="history-detail-view">
+          <div id="detail-card-container" style="height: 100%;">
+            <div class="detail-placeholder">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              <h3>No Record Selected</h3>
+              <p>Select a history session from the list on the left to view the complete diagnostic summary and performance metrics.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const token = localStorage.getItem("jwt_token");
+      const sessionsContainer = document.getElementById("sessions-container");
+      const detailContainer = document.getElementById("detail-card-container");
+      let allSessions = [];
+
+      if (!token) {
+        sessionsContainer.innerHTML = '<p class="text-danger" style="text-align:center; padding:20px;">Please log in from the dashboard to access history.</p>';
+      } else {
+        loadHistory();
+      }
+
+      async function loadHistory() {
+        try {
+          const res = await fetch("/history/diagnostics", {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (!res.ok) throw new Error("Could not load diagnostics history");
+          
+          allSessions = await res.json();
+          renderSessions();
+        } catch (err) {
+          console.error(err);
+          // Try fallback
+          try {
+            const fallback = await fetch("/history", {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            if (fallback.ok) {
+              const data = await fallback.json();
+              allSessions = data.map(item => ({
+                id: item.id,
+                xray_filename: item.filename,
+                is_simple: true,
+                timestamp: item.timestamp,
+                final_diagnostic: {
+                  diagnosis: item.prediction,
+                  severity: item.prediction.toLowerCase() === 'normal' ? 'Low' : 'High',
+                  confidence: (item.confidence * 100).toFixed(0) + '%'
+                }
+              }));
+              renderSessions();
+            } else {
+              sessionsContainer.innerHTML = `<p class="text-danger" style="text-align:center; padding:20px;">Failed to load history: ${err.message}</p>`;
+            }
+          } catch (e) {
+            sessionsContainer.innerHTML = `<p class="text-danger" style="text-align:center; padding:20px;">Failed to load history: ${err.message}</p>`;
+          }
+        }
+      }
+
+      function renderSessions() {
+        sessionsContainer.innerHTML = "";
+        if (allSessions.length === 0) {
+          sessionsContainer.innerHTML = '<p class="text-muted" style="text-align:center; padding:40px 10px;">No diagnostic history recorded yet.</p>';
+          return;
+        }
+
+        allSessions.forEach((session, idx) => {
+          const card = document.createElement("div");
+          card.className = "history-card-item";
+          card.dataset.id = session.id;
+          
+          const diag = session.final_diagnostic || {};
+          const isSimple = session.is_simple || !session.rag_data;
+          
+          // Truncate diagnosis if it's too long
+          let displayDiagnosis = diag.diagnosis || "Unknown Result";
+          if (displayDiagnosis.length > 50) {
+            displayDiagnosis = displayDiagnosis.substring(0, 47) + "...";
+          }
+
+          const severity = diag.severity || "Unknown";
+          const badgeClass = (severity === "High" || severity === "Critical") ? "pneumonia" : "normal";
+          
+          const dateStr = new Date(session.timestamp).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+          });
+
+          card.innerHTML = `
+            <div class="history-card-header">
+              <span class="history-card-title" title="${session.xray_filename}">${session.xray_filename}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="history-card-meta">${dateStr}</span>
+              <div class="badge-row">
+                <span class="badge badge-sm ${badgeClass}">${displayDiagnosis}</span>
+                ${isSimple ? '<span class="badge badge-sm" style="background:#f1f5f9; color:#475569;">X-ray Only</span>' : '<span class="badge badge-sm" style="background:#eff6ff; color:#1e40af;">Clinical RAG</span>'}
+              </div>
+            </div>
+          `;
+
+          card.addEventListener("click", () => selectSession(session, card));
+          sessionsContainer.appendChild(card);
+        });
+      }
+
+      function selectSession(session, cardElement) {
+        document.querySelectorAll(".history-card-item").forEach(c => c.classList.remove("selected"));
+        cardElement.classList.add("selected");
+
+        const diag = session.final_diagnostic || {};
+        const ragData = session.rag_data || {};
+        const xray = session.xray_analysis || {};
+        const isSimple = session.is_simple || !session.rag_data;
+        const patient = session.patient_context || {};
+
+        const dateStr = new Date(session.timestamp).toLocaleString("en-US", {
+          dateStyle: "medium",
+          timeStyle: "short"
+        });
+
+        const severity = diag.severity || "Unknown";
+        const badgeClass = (severity === "High" || severity === "Critical") ? "pneumonia" : "normal";
+        const reportCount = ragData?.documents_count || ragData?.documents?.length || 0;
+
+        let contentHtml = `
+          <div class="glass-panel" style="animation: slideUp 0.3s ease; display:flex; flex-direction:column; gap:24px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid #e2e8f0; padding-bottom:16px; flex-wrap:wrap; gap:16px;">
+              <div>
+                <h2 style="margin:0 0 4px 0; font-size:1.4rem;">${isSimple ? 'X-Ray Screen Result' : 'Clinical Diagnostic Summary'}</h2>
+                <span style="font-size:0.85rem; color:var(--text-muted);">File: <b>${session.xray_filename}</b> · Analyzed on ${dateStr}</span>
+              </div>
+              <div class="badge-row">
+                <span class="badge ${badgeClass}" style="font-size:0.95rem; padding:6px 14px;">${diag.diagnosis || 'Diagnostic'}</span>
+              </div>
+            </div>
+
+            <div>
+              <p style="color:var(--text-muted); font-size:0.85rem; margin:0 0 6px 0; text-transform:uppercase; font-weight:700; letter-spacing:0.5px;">Patient Demographics</p>
+              <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap:12px; background:rgba(255,255,255,0.4); padding:16px; border-radius:14px; border:1px solid #e2e8f0;">
+                <div><span style="color:var(--text-muted); font-size:0.8rem;">Name:</span> <br><b>${patient.full_name || 'Anas Koukham'}</b></div>
+                <div><span style="color:var(--text-muted); font-size:0.8rem;">Age:</span> <br><b>${patient.age || '21'} years</b></div>
+                <div><span style="color:var(--text-muted); font-size:0.8rem;">Blood Type:</span> <br><b>${patient.blood_type || 'O+'}</b></div>
+                <div><span style="color:var(--text-muted); font-size:0.8rem;">Avg Heartbeat:</span> <br><b>${patient.avg_heartbeat_bpm || '—'} bpm</b></div>
+              </div>
+            </div>
+        `;
+
+        if (!isSimple) {
+          // Full diagnostic result
+          contentHtml += `
+            <div>
+              <p style="color:var(--text-muted); font-size:0.85rem; margin:0 0 6px 0; text-transform:uppercase; font-weight:700; letter-spacing:0.5px;">Clinical Summary</p>
+              <p class="rag-summary" style="margin:0; font-size:1rem; line-height:1.6; color:#334155;">${diag.clinical_summary || diag.summary || ''}</p>
+            </div>
+
+            <div class="contributions-grid" style="margin:0;">
+              <div class="contribution-card">
+                <strong>Patient Profile</strong>
+                <p>${diag.account_contribution || "—"}</p>
+              </div>
+              <div class="contribution-card">
+                <strong>Medical Report</strong>
+                <p>${diag.report_contribution || "—"}</p>
+              </div>
+              <div class="contribution-card">
+                <strong>X-Ray Analysis</strong>
+                <p>${diag.xray_contribution || "—"}</p>
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+              <div class="rag-findings" style="margin:0;">
+                <strong>Key Findings &amp; Observations:</strong>
+                <ul>
+                  ${(diag.key_factors || []).map(f => `<li>${f}</li>`).join('') || '<li>No key factors annotated.</li>'}
+                </ul>
+              </div>
+              <div class="rag-findings" style="margin:0;">
+                <strong>Clinical Recommendations:</strong>
+                <ul>
+                  ${(diag.recommendations || []).map(r => `<li>${r}</li>`).join('') || '<li>No recommendations annotated.</li>'}
+                </ul>
+              </div>
+            </div>
+
+            ${diag.follow_up ? `
+              <div class="rag-recommendation" style="margin:0;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0;color:var(--primary);"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <span>${diag.follow_up}</span>
+              </div>
+            ` : ''}
+          `;
+        } else {
+          // Simple result
+          contentHtml += `
+            <div>
+              <p style="color:var(--text-muted); font-size:0.85rem; margin:0 0 6px 0; text-transform:uppercase; font-weight:700; letter-spacing:0.5px;">X-Ray Screening Summary</p>
+              <p style="margin:0 0 16px 0; font-size:1rem; color:#334155; line-height:1.6;">
+                The diagnostic model analyzed the chest X-ray image and returned a prediction of <b>${diag.diagnosis}</b>. 
+                No clinical reports or patient background files were merged with this specific session.
+              </p>
+            </div>
+
+            <div class="contributions-grid" style="margin:0; grid-template-columns: 1fr;">
+              <div class="contribution-card" style="padding:18px;">
+                <strong>CNN Prediction Confidence Score</strong>
+                <p>The convolutional neural network evaluated the lung scan with a confidence score of <b>${diag.confidence || xray.confidence || '—'}</b>.</p>
+              </div>
+            </div>
+          `;
+        }
+
+        contentHtml += `
+            <div style="border-top:1px solid #e2e8f0; padding-top:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+              <span style="font-size:0.8rem; color:var(--text-muted);">Session ID: <b>#${session.id}</b></span>
+              <span style="font-size:0.8rem; color:var(--text-muted); font-style:italic;">${diag.disclaimer || "This is an AI-assisted analysis and does not replace professional medical diagnosis."}</span>
+            </div>
+          </div>
+        `;
+
+        detailContainer.innerHTML = contentHtml;
+      }
+    </script>
+  </body>
+</html>
