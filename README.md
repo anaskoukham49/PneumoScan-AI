@@ -1,4 +1,4 @@
-# PneumoScan AI
+<img width="1919" height="871" alt="image" src="https://github.com/user-attachments/assets/a92ced2a-340a-4539-8efc-b1e2bd3d1c06" /># PneumoScan AI
 
 Final year project (PFA) — I wanted to build something actually useful, so I made an AI that helps detect pneumonia from chest X-rays and reads medical reports.
 
@@ -12,6 +12,14 @@ This started as a school project but I tried to make it like a real product: cle
 - You can also upload PDF medical reports — it pulls the text, does RAG with embeddings, and asks Gemini to summarize the findings
 - If you're logged in, it merges everything (your profile + report + X-ray) into one final diagnostic and checks that the report actually belongs to you
 - Everything is saved in history so you can go back and see old predictions
+
+<img width="1919" height="871" alt="image" src="https://github.com/user-attachments/assets/7800d6a2-6176-4b5d-bdf8-b6d993e7eeb9" />
+<img width="1903" height="869" alt="image" src="https://github.com/user-attachments/assets/9fcaf17c-d971-4771-9c04-6aaaa0f02b38" />
+
+<img width="1406" height="1337" alt="image" src="https://github.com/user-attachments/assets/a7bfcaa2-8c7c-4638-bdf5-43f3a22ebbeb" />
+
+
+
 
 ### How I built it
 
