@@ -1,124 +1,92 @@
-# PneumoScan — AI Pneumonia Detection
+# PneumoScan AI
 
-> End-of-year project (PFA): CNN + RAG pipeline for chest X-ray pneumonia detection with clinical report analysis.
+Final year project (PFA) — I wanted to build something actually useful, so I made an AI that helps detect pneumonia from chest X-rays and reads medical reports.
 
-[![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.136-009688?logo=fastapi)](https://fastapi.tiangolo.com/)
-[![TensorFlow 2.20](https://img.shields.io/badge/TensorFlow-2.20-FF6F00?logo=tensorflow)](https://www.tensorflow.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+This started as a school project but I tried to make it like a real product: clean data pipeline, a trained model, and a web app you can actually use.
 
-A full-stack medical AI platform:
-- **CNN** classifies chest X-rays (NORMAL vs PNEUMONIA) + Grad-CAM heatmap
-- **RAG pipeline** extracts & analyzes PDF medical reports (PyMuPDF → ChromaDB + sentence-transformers → Gemini)
-- **Fusion diagnostic** merges patient profile, RAG findings, and X-ray prediction (with identity mismatch guard)
-- **FastAPI + SQLite/Postgres** backend, vanilla JS frontend
+> Not a medical tool — just a school project. Don't use it for real diagnosis.
 
-> ⚠️ **Disclaimer:** Research prototype only. Not a medical device. Does not replace professional diagnosis.
+### What it does
 
-## Demo
+- You upload a chest X-ray, it tells you NORMAL or PNEUMONIA with a confidence score and shows a heatmap (Grad-CAM) of where it looked
+- You can also upload PDF medical reports — it pulls the text, does RAG with embeddings, and asks Gemini to summarize the findings
+- If you're logged in, it merges everything (your profile + report + X-ray) into one final diagnostic and checks that the report actually belongs to you
+- Everything is saved in history so you can go back and see old predictions
 
-- API: `GET /` serves the web UI, `POST /predict` for X-ray only, `POST /final-diagnostic` for full fusion
-- Sample report: `sample_medical_report.pdf` (synthetic, John Doe) — regenerated via `python scripts/generate_sample_report.py`
+### How I built it
 
-## Results (baseline CNN)
+- **ETL**: Python script that cleans and resizes X-rays to 224x224, splits train/val/test, and writes a manifest
+- **Model**: Simple CNN baseline on TensorFlow/Keras. Got around 96.4% accuracy and 0.99 AUC on validation — not bad for a baseline. Plots are in `model/artifacts/`
+- **API**: FastAPI, does the preprocessing exactly like training, returns JSON
+- **RAG**: PyMuPDF to extract text -> chunk -> ChromaDB + sentence-transformers (`all-MiniLM-L6-v2`) -> Gemini for the final summary. Falls back to keywords if there's no API key
+- **Frontend**: Plain HTML/CSS/JS, no framework. Served directly by FastAPI
 
-| Metric | Validation |
-|---|---|
-| Accuracy | **96.47%** |
-| AUC | **0.990** |
-| Loss | 0.107 |
-
-Plots: `model/artifacts/training_history.png`, `confusion_matrix.png`, `roc_curve.png`
-
-![Training History](model/artifacts/training_history.png)
-
-## Architecture
+### Project structure
 
 ```
-data/raw/NORMAL|PNEUMONIA → etl/run_etl.py → data/processed → model/train_baseline.py
-                                     ↓
-              PDF ──parse(chroma)──▶ RAG ──┐
-              X-ray ──CNN+GradCAM──► API ──┼── Fusion Diagnostic ──▶ Frontend
-              Profile ──DB───────────┘     │
+api/        -> FastAPI, auth, RAG pipeline
+frontend/   -> web UI
+etl/        -> data cleaning
+model/      -> training, evaluation, gradcam + artifacts
+scripts/    -> .ps1 / .bat helpers
+data/       -> raw X-rays go here (ignored by git)
+sample_medical_report.pdf -> fake report to test with (John Doe)
 ```
 
-## Quickstart
+### Run it locally
+
+You need Python 3.11. I used a venv.
 
 ```bash
-# 1. Clone & venv
-git clone <your-repo-url> pneumoscan && cd pneumoscan
-python -m venv .venv && .venv\Scripts\activate  # Windows
-# or: python3 -m venv .venv && source .venv/bin/activate
+git clone https://github.com/anaskoukham49/PneumoScan-AI.git
+cd PneumoScan-AI
+
+python -m venv .venv
+.venv\Scripts\activate        # Windows
+# source .venv/bin/activate  # Mac/Linux
 
 pip install -r requirements.txt
 
-# 2. Env
-cp .env.example .env   # set GEMINI_API_KEY (optional — fallback runs without it)
+cp .env.example .env
+# open .env and put your GEMINI_API_KEY if you have one
+# if you don't, it still works — it will just use the fallback
 
-# 3. Data → place chest X-rays in:
-#    data/raw/NORMAL/ and data/raw/PNEUMONIA/  (e.g. Chest X-Ray Images (Pneumonia) Kaggle)
+# put your X-ray images in:
+#   data/raw/NORMAL/
+#   data/raw/PNEUMONIA/
+# (I used the Kaggle chest X-ray dataset)
 
-# 4. ETL + Train
+# then:
 powershell -ExecutionPolicy Bypass -File scripts/run_etl.ps1
 powershell -ExecutionPolicy Bypass -File scripts/train_baseline.ps1
-# outputs: model/artifacts/baseline_pneumonia.keras, baseline_metrics.json
 
-# 5. Run API
+# start the app
 powershell -ExecutionPolicy Bypass -File scripts/run_api.ps1
-# → http://127.0.0.1:8000  (GET /health, POST /predict, POST /final-diagnostic)
+# or: scripts\run_api.bat
+# then open http://127.0.0.1:8000
 ```
 
-Alternative: `scripts/run_api.bat` or VS Code task `Run API`.
+Endpoints if you want to test with curl/Postman:
+- `GET /health` — is the model loaded?
+- `POST /predict` — just an X-ray
+- `POST /final-diagnostic` — X-ray + PDFs + your profile (needs login)
 
-## API Endpoints
+You can also do `Terminal > Run Task... > Run API` in VS Code.
 
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| GET | `/` | — | Web UI |
-| GET | `/health` | — | Service + model status |
-| GET | `/metrics` | — | Training accuracy/AUC |
-| POST | `/predict` | optional | X-ray image → `{prediction, confidence, gradcam_base64}` |
-| POST | `/register`, `/token` | — | Auth (JWT) |
-| POST | `/analyze-report` | ✅ | Single PDF RAG analysis |
-| POST | `/process-documents` | ✅ | Multi-PDF RAG merged payload |
-| POST | `/final-diagnostic` | ✅ | X-ray + PDFs + profile → fusion diagnostic |
-| GET | `/history`, `/history/reports`, `/history/diagnostics` | ✅ | User history |
+### Model files
 
-## Project Structure
+The trained weights `baseline_pneumonia.keras` is 128MB so I didn't push it (GitHub blocks >100MB). It's gitignored. You can retrain with `train_baseline.ps1` or download it from Releases if I add it there. The metrics and plots are in `model/artifacts/`.
 
-```
-api/          # FastAPI (app.py, rag.py, auth.py, models.py)
-frontend/     # index.html, app.js, styles.css, history.html
-etl/          # run_etl.py, config.py
-model/        # train_baseline.py, evaluate.py, gradcam.py, artifacts/
-scripts/      # setup.ps1, run_etl.ps1, train_baseline.ps1, run_api.* , generate_*.py
-docs/         # phase_tracker.md, backlog.md
-data/         # raw/ processed/ reports/  (gitignored, add your dataset)
-sample_medical_report.pdf  # synthetic demo report
-```
+### Things I'd improve next
 
-## Model Artifacts
+- Try transfer learning (MobileNet/ResNet) instead of baseline CNN
+- Add Docker + proper tests
+- Better error handling and a nicer UI
+- Host the model properly
 
-`model/artifacts/baseline_pneumonia.keras` (128 MB) is **gitignored** (GitHub 100 MB limit).  
-Recreate locally via `scripts/train_baseline.ps1` or download from **Releases** (create a release and attach the `.keras`).
+### Notes
 
-Tracked: `baseline_metrics.json`, `*.png` plots. See `model/artifacts/README.md`.
+- `.env` and `pneumoscan.db` are not tracked — don't push real patient data
+- This was tested with the synthetic report `sample_medical_report.pdf`, you can regenerate it with `python scripts/generate_sample_report.py`
 
-## Tech Stack
-
-Python, TensorFlow/Keras, OpenCV, scikit-learn, FastAPI, Uvicorn, SQLAlchemy, ChromaDB, sentence-transformers, PyMuPDF, Google Gemini, HTML/CSS/JS.
-
-## Security
-
-- No secrets in repo — use `.env` (see `.env.example`), `.env` is gitignored.
-- Rotate any exposed API keys before pushing.
-- `pneumoscan.db` and `data/` are gitignored — don’t commit patient data.
-
-## Roadmap
-
-- Phase 0–4 done (ETL, baseline CNN, API, frontend) — see `docs/phase_tracker.md`
-- TODO: transfer learning, hyper-tuning, E2E tests, deployment (Docker)
-
-## License
-
-MIT — add a `LICENSE` file.
+Made by Anas — feel free to open an issue or reach out if you want to try it.
