@@ -88,4 +88,4 @@ The trained weights `baseline_pneumonia.keras` is 128MB so I didn't push it (Git
 - `.env` and `pneumoscan.db` are not tracked — don't push real patient data
 - To test the RAG part, generate a fake report locally with `python scripts/generate_sample_report.py` (not tracked in git)
 
-Made by Anas — feel free to open an issue or reach out if you want to try it.
+Made by Anas Koukham — feel free to open an issue or reach out if you want to try it.
