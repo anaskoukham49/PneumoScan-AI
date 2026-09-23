@@ -70,7 +70,8 @@ chroma.sqlite3
 .idea/
 *.code-workspace
 
-# — Misc generated (keep one demo sample) —
+# — Misc generated / sample reports (not tracked) —
+sample_medical_report.pdf
 complex_medical_dossier.pdf
 abdo_adraoui_medical_report.html
 *_big_gallery.jpeg

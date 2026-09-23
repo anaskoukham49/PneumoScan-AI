@@ -28,9 +28,8 @@ api/        -> FastAPI, auth, RAG pipeline
 frontend/   -> web UI
 etl/        -> data cleaning
 model/      -> training, evaluation, gradcam + artifacts
-scripts/    -> .ps1 / .bat helpers
+scripts/    -> .ps1 / .bat helpers (including generate_sample_report.py to make a fake PDF for testing)
 data/       -> raw X-rays go here (ignored by git)
-sample_medical_report.pdf -> fake report to test with (John Doe)
 ```
 
 ### Run it locally
@@ -87,6 +86,6 @@ The trained weights `baseline_pneumonia.keras` is 128MB so I didn't push it (Git
 ### Notes
 
 - `.env` and `pneumoscan.db` are not tracked — don't push real patient data
-- This was tested with the synthetic report `sample_medical_report.pdf`, you can regenerate it with `python scripts/generate_sample_report.py`
+- To test the RAG part, generate a fake report locally with `python scripts/generate_sample_report.py` (not tracked in git)
 
 Made by Anas — feel free to open an issue or reach out if you want to try it.
